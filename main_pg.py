@@ -66,11 +66,12 @@ while running:
                     troops_to_be_added = min(troops_to_be_added, game.active_player.available_troops)
                     selected_territory.addTroops(troops_to_be_added)
                     game.active_player.removeTroops(troops_to_be_added)
-                    print(f"{troops_to_be_added} troops drafted to {selected_territory.name} --- total: {selected_territory.troops_stationed}")
+                    print(f"{troops_to_be_added} troops drafted to {selected_territory.name}", end=" ")
+                    print(f"--- total: {selected_territory.troops_stationed}")
 
                     if game.active_player.available_troops > 0:
                         print(f"{game.active_player.available_troops} troops left to be added")
-                    print()
+                        print()
 
                     if game.active_player.available_troops == 0:
                         game.passPhase()
