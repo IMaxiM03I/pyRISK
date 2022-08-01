@@ -9,3 +9,6 @@ BG_COLOR: Color = Color("white")
 TERRITORY_MARKER_RADIUS: int = WIDTH//75
 
 FPS: int = 60
+
+TEXT_COLOR: str = "white"
+TEXT_BG_COLOR: str = "black"

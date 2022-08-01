@@ -385,9 +385,8 @@ class Game:
     def passPhase(self) -> None:
         
         if self.phase == 0:     # at the end of the setup phase inform who's turn it is
-            print(f"it is now {self.active_player.color}'s turn")
-        elif self.phase == 2 or self.phase == 3:      # at the end of attack and fortify phases: reset
-            self.first_territory = NULL_TERRITORY
+            print(f"\nit is now {self.active_player.color}'s turn")
+        self.first_territory = NULL_TERRITORY       # reset at the end of phase
         
         print()
         self.phase += 1
@@ -430,7 +429,8 @@ class Game:
         
         print()
         if defending_territory.getTroops() == 0:    # attack successful
-            self.conquerTerritory(defending_territory.getID(), self.active_player, self.first_territory.getTroops())
+            self.conquerTerritory(defending_territory.getID(), self.active_player, self.first_territory.getTroops()-1)
+            self.first_territory.setTroops(1)
         else:   # attack failed
             print(f"{defending_territory.name} defended fiercely and annihilated {self.first_territory.name}'s "
                   f"attacking force")
