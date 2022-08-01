@@ -6,7 +6,9 @@ import random
 
 class Player:
 
-    def __init__(self, player_color: str) -> None:
+    def __init__(self, player_color: str, is_null: bool = False) -> None:
+        
+        self.null_type: bool = is_null
 
         # geography #
         self.color: str = player_color
@@ -29,6 +31,9 @@ class Player:
         self.available_troops -= number_troops
     
     ### GETTERS ###
+    
+    def isNull(self) -> bool:
+        return self.null_type
 
     def getColor(self) -> str:
         return self.color
@@ -41,7 +46,10 @@ class Player:
 
 class Territory:
 
-    def __init__(self, name: str = "", territory_id: str = "", neighbours = None, x: int = 0, y: int = 0) -> None:
+    def __init__(self, name: str = "", territory_id: str = "", neighbours = None, x: int = 0, y: int = 0,
+                 is_null: bool = False) -> None:
+        
+        self.null_type: bool = is_null
         
         if neighbours is None:
             neighbours = []
@@ -53,7 +61,7 @@ class Territory:
         self.name: str = name
         self.id: str = territory_id
 
-        self.ruler = None
+        self.ruler = NULL_PLAYER
         self.neighbours: list[str] = neighbours
 
         # military #
@@ -81,6 +89,9 @@ class Territory:
 
     ### GETTERS ###
 
+    def isNull(self) -> bool:
+        return self.null_type
+    
     def getName(self) -> str:
         return self.name
     
@@ -99,13 +110,18 @@ class Territory:
         pg.draw.circle(screen, Color(self.ruler.color), (self.x, self.y), TERRITORY_MARKER_RADIUS)
 
     def isEmpty(self) -> bool:
-        return self.ruler is None
+        return self.ruler.isNull()
 
 
 class Continent:
 
-    def __init__(self, name: str, territories: dict[str: Territory], bonus_troops: int) -> None:
-
+    def __init__(self, name: str = "n/a", territories: dict[str: Territory] | None = None, bonus_troops: int = 0,
+                 is_null: bool = False) -> None:
+        
+        self.null_type: bool = is_null
+        if territories is None:
+            territories = {}
+        
         # geography #
         self.name: str = name
         self.territories: dict[str: Territory] = territories
@@ -114,7 +130,7 @@ class Continent:
         for territory in self.territories.values():
             self.territories_list.append(territory)
 
-        self.ruler: Player | None = None
+        self.ruler: Player = NULL_PLAYER
 
         # military #
         self.bonus_troops: int = bonus_troops
@@ -129,6 +145,9 @@ class Continent:
     
     ### GETTERS ###
 
+    def isNull(self) -> bool:
+        return self.null_type
+    
     def getName(self) -> str:
         return self.name
 
@@ -138,10 +157,10 @@ class Continent:
     def getTerritoriesList(self) -> list[Territory]:
         return self.territories_list
 
-    def getRuler(self) -> Player | None:
+    def getRuler(self) -> Player:
         if self.hasSingleRuler():
             return self.territories_list[0].ruler
-        return None
+        return NULL_PLAYER
     
     def getBonusTroops(self) -> int:
         return self.bonus_troops
@@ -152,10 +171,10 @@ class Continent:
         for territory in self.getTerritoriesList():
             territory.draw(screen)
 
-    def findTerritory(self, territory_id: str) -> Territory | None:
+    def findTerritory(self, territory_id: str) -> Territory:
         if territory_id in self.territories.keys():
             return self.territories[territory_id]
-        return None
+        return NULL_TERRITORY
     
     def hasEmptyTerritories(self) -> bool:
         for territory in self.getTerritoriesList():
@@ -179,7 +198,7 @@ class Game:
         
         # players #
         self.players: list[Player] = []
-        self.active_player: Player | None = None
+        self.active_player: Player = NULL_PLAYER
 
         # dice #
         self.dice: list[list[int]] = [[0, 0], [0, 0, 0]]
@@ -193,7 +212,7 @@ class Game:
         
         # game #
         self.phase: int = 0
-        self.first_territory: Territory | None = None      # territory from which an attack will be launched
+        self.first_territory: Territory = NULL_TERRITORY      # territory from which an attack will be launched
 
         # init #
         self.create_players()
@@ -228,7 +247,7 @@ class Game:
         return self.continents_list
     
     def hasSelectedFirstTerritory(self) -> bool:
-        return self.first_territory is not None
+        return not self.first_territory.isNull()
 
     ### ACTIONS ###
 
@@ -336,14 +355,14 @@ class Game:
             continent.drawTerritories(screen)
 
     def findTerritory(self, territory_id: str) -> Territory:
-        territory: Territory | None = None
+        territory: Territory = NULL_TERRITORY
         for continent in self.getContinentsList():
-            if territory is None:
+            if territory.isNull():
                 territory = continent.findTerritory(territory_id)
         
         return territory
 
-    def selectTerritory(self, click_coords: tuple[int, int]) -> Territory | None:
+    def selectTerritory(self, click_coords: tuple[int, int]) -> Territory:
 
         """
         can be made faster by reducing each continent to a rectangle and then finding which rectangle was clicked,
@@ -356,7 +375,7 @@ class Game:
                     if abs(territory.y - click_coords[1]) <= TERRITORY_MARKER_RADIUS:   # check y-coord
                         return territory
         
-        return None
+        return NULL_TERRITORY
 
     # --- game --- #
 
@@ -365,7 +384,7 @@ class Game:
         if self.phase == 0:     # at the end of the setup phase inform who's turn it is
             print(f"it is now {self.active_player.color}'s turn")
         elif self.phase == 2 or self.phase == 3:      # at the end of attack and fortify phases: reset
-            self.first_territory = None
+            self.first_territory = NULL_TERRITORY
         
         print()
         self.phase += 1
@@ -403,8 +422,19 @@ class Game:
             print()
             print(f"{self.first_territory.name} lost: {attacking_troops - self.first_territory.getTroops()}")
             print(f"{defending_territory.name} lost: {defending_troops - defending_territory.getTroops()}")
-            print(f"battle: {self.first_territory.name} {self.first_territory.getTroops()} |", end=" ")
+            print(f"troops available: {self.first_territory.name} {self.first_territory.getTroops()} |", end=" ")
             print(f"{defending_territory.getTroops()} {defending_territory.name}")
         
-        if defending_territory.getTroops() == 0:
+        print()
+        if defending_territory.getTroops() == 0:    # attack successful
             self.conquerTerritory(defending_territory.getID(), self.active_player, self.first_territory.getTroops())
+        else:   # attack failed
+            print(f"{defending_territory.name} defended fiercely and annihilated {self.first_territory.name}'s "
+                  f"attacking force")
+
+
+# NULL OBJECTS #
+
+NULL_PLAYER: Player = Player("n/a", True)
+NULL_TERRITORY: Territory = Territory(is_null = True)
+NULL_CONTINENT: Continent = Continent(is_null = True)

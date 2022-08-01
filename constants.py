@@ -1,7 +1,6 @@
 import pygame as pg
 from pygame.locals import *
 
-
 SCREEN_SIZE: int = 500
 WIDTH: int = 1000
 HEIGHT: int = 647

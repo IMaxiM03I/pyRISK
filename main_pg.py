@@ -54,12 +54,12 @@ while running:
         
         elif event.type == MOUSEBUTTONUP:
             selected_territory: Territory = game.selectTerritory(pg.mouse.get_pos())
-            # if selected_territory is None:
+            # if selected_territory.isNull():
             #     print(None)
             # else:
             #     print(selected_territory.name)
 
-            if game.phase == 1 and selected_territory is not None:     # draft phase
+            if game.phase == 1 and not selected_territory.isNull():     # draft phase
                 if selected_territory.ruler == game.active_player:      # selected a valid territory
                     
                     troops_to_be_added: int = int(input(f"troops drafted to {selected_territory.name}: "))
