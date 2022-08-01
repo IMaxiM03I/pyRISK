@@ -246,6 +246,9 @@ class Game:
     def getContinentsList(self) -> list[Continent]:        
         return self.continents_list
     
+    def getPhaseStr(self) -> str:   # get phase as a string
+        return "DRAFT" if self.phase == 1 else "ATTACK" if self.phase == 2 else "FORTIFY"
+    
     def hasSelectedFirstTerritory(self) -> bool:
         return not self.first_territory.isNull()
 

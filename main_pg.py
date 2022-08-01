@@ -5,12 +5,12 @@ from assets_pg import *
 from maps.classic_pg import *
 
 
-
 ### ----- VARIABLES ------ ###
 
 
-
 game: Game = Game(classic_continents)
+
+phase_font: pg.font.Font
 
 # --- pygame --- #
 
@@ -23,17 +23,13 @@ clock: pg.time.Clock = pg.time.Clock()
 running: bool = True
 
 
-
 ### ------ FUNCTIONS ------ ###
-
 
 
 ### ------ CLASSES ------ ###
 
 
-
 ### ------ MAIN ------ ###
-
 
 
 while running:
@@ -90,6 +86,13 @@ while running:
     screen.blit(CLASSIC_MAP, (0, 0))
 
     game.drawTerritories(screen)
+    
+    # --- HUD --- #
+    
+    phase_font = pg.font.Font(None, 50)
+    phase_text = phase_font.render(game.getPhaseStr(), True, 'white', "black")
+    phase_text_rect = phase_text.get_rect(center=(WIDTH//2, 9*HEIGHT//10))
+    screen.blit(phase_text, phase_text_rect)
 
     pg.display.update()
     clock.tick(FPS)
