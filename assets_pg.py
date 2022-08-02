@@ -260,7 +260,7 @@ class Game:
     def create_players(self) -> None:
         # n_players: int = int(input("enter the number of players: "))
         n_players: int = 6
-        colors: list[str] = ["red", "green", "blue", "black", "orange", "purple"]
+        colors: list[str] = ["green", "red", "blue", "black", "orange", "purple"]
         color: str
         color_taken: bool = False
 
@@ -295,10 +295,7 @@ class Game:
         
         # add drafting troops #
         self.active_player.setTroops(self.calculateDraftTroops(self.active_player))
-
-        if self.phase != 0:     # don't print during the setup phase
-            print(f"it is now {self.active_player.color}'s turn")
-    
+        
     def countPlayerTerritories(self, player: Player) -> int:
 
         count: int = 0
@@ -385,18 +382,13 @@ class Game:
 
     def passPhase(self) -> None:
         
-        if self.phase == 0:     # at the end of the setup phase inform who's turn it is
-            print(f"\nit is now {self.active_player.color}'s turn")
         self.first_territory = NULL_TERRITORY       # reset at the end of phase
         
-        print()
         self.phase += 1
         if self.phase == 4:     # there are only 3 phases: draft, attack, fortify
             self.phase = 1
             self.passTurn()     # at the end of phase 3, it is the next player's turn
-        
-        print(f"phase: {self.phase}")
-    
+            
     def conquerTerritory(self, territory_conquered_id: str, conqueror: Player, occupying_force: int) -> None:
         territory_conquered: Territory = self.findTerritory(territory_conquered_id)
         territory_conquered.setRuler(conqueror)

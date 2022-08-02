@@ -27,7 +27,7 @@ sAmerican_terr: dict[str: Territory] = {
 european_terr: dict[str: Territory] = {
     "iceland": Territory(name="Iceland", neighbours=["greenland", "gb", "scandinavia"], x=385, y=95),
     "scandinavia": Territory(name="Scandinavia", neighbours=["iceland", "gb", "ukraine", "n europe"], x=470, y=102),
-    "ukraine": Territory(name="Ukaraine", neighbours=["n europe", "scandinavia", "ural", "afghanistan", "middle e", "s europe"], x=540, y=160),
+    "ukraine": Territory(name="Ukraine", neighbours=["n europe", "scandinavia", "ural", "afghanistan", "middle e", "s europe"], x=540, y=160),
     "gb": Territory(name="Great Britain", neighbours=["iceland", "scandinavia", "n europe", "w europe"], x=368, y=170),
     "n europe": Territory(name="Northern Europe", neighbours=["gb", "scandinavia", "ukraine", "s europe", "w europe"], x=456, y=178),
     "w europe": Territory(name="Western Europe", neighbours=["gb", "n europe", "s europe", "n africa"], x=383, y=250),

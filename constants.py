@@ -10,5 +10,6 @@ TERRITORY_MARKER_RADIUS: int = WIDTH//75
 
 FPS: int = 60
 
+FONT_SIZE: int = 50
 TEXT_COLOR: str = "white"
 TEXT_BG_COLOR: str = "black"
