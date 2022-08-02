@@ -108,8 +108,18 @@ class Territory:
     ### ACTIONS ###
 
     def draw(self, screen: pg.Surface) -> None:
+        # territory marker
         pg.draw.circle(screen, Color(self.ruler.color), (self.x, self.y), TERRITORY_MARKER_RADIUS)
-
+        
+        # territory troops
+        font: pg.font.Font = pg.font.Font(None, 4*FONT_SIZE//5)
+        text_color: str = TEXT_COLOR
+        if self.ruler.color == "black":
+            text_color = "white"
+        troops_text = font.render(str(self.troops_stationed), True, text_color)
+        troops_text_rect = troops_text.get_rect(center = (self.x, self.y))
+        screen.blit(troops_text, troops_text_rect)
+    
     def isEmpty(self) -> bool:
         return self.ruler.isNull()
 
