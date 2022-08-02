@@ -69,7 +69,8 @@ while running:
             elif game.phase == 2:     # attack phase
                 if selected_territory.ruler == game.active_player:
                     game.setFirstTerritory(selected_territory)
-                elif game.hasSelectedFirstTerritory():
+                elif game.hasSelectedFirstTerritory() and selected_territory.getID() in \
+                        game.first_territory.getNeighbours() and selected_territory.ruler != game.first_territory.ruler:
                     game.attack(selected_territory)
 
     # REFRESH #
@@ -105,15 +106,15 @@ while running:
     phase_text_rect = phase_text.get_rect(center=(WIDTH//2, 9*HEIGHT//10))
     screen.blit(phase_text, phase_text_rect)
     
-    # selected territory's troops #
+    # selected territory #
     if not selected_territory.isNull():
         troops_font = pg.font.Font(None, FONT_SIZE)
         if selected_territory.ruler.color != "black":
-            troops_text = troops_font.render(f"{selected_territory.name}: {str(selected_territory.troops_stationed)}",
-                                             True, Color(selected_territory.ruler.color), TEXT_BG_COLOR)
+            troops_text = troops_font.render(selected_territory.name, True, Color(selected_territory.ruler.color),
+                                             TEXT_BG_COLOR)
         else:
-            troops_text = troops_font.render(f"{selected_territory.name}: {str(selected_territory.troops_stationed)}",
-                                             True, Color(selected_territory.ruler.color), "white")
+            troops_text = troops_font.render(selected_territory.name, True, Color(selected_territory.ruler.color),
+                                             "white")
         troops_text_rect = troops_text.get_rect(center=(WIDTH//2, 19*HEIGHT//20))
         screen.blit(troops_text, troops_text_rect)
     

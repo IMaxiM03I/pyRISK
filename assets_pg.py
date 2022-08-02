@@ -102,6 +102,9 @@ class Territory:
     def getRuler(self) -> Player:
         return self.ruler
     
+    def getNeighbours(self) -> list[str]:
+        return self.neighbours
+    
     def getTroops(self) -> int:
         return self.troops_stationed
     
@@ -245,6 +248,7 @@ class Game:
             for dice in range(len(self.dice[role])):
                 self.dice[role][dice] = random.randint(1, 6)
             self.dice[role].sort()
+            self.dice[role].reverse()
 
     ### GETTERS ###
 
@@ -401,6 +405,8 @@ class Game:
             
     def conquerTerritory(self, territory_conquered_id: str, conqueror: Player, occupying_force: int) -> None:
         territory_conquered: Territory = self.findTerritory(territory_conquered_id)
+        if self.countPlayerTerritories(territory_conquered.ruler) == 1:     # this was the enemy player's last territory
+            self.players.remove(territory_conquered.ruler)      # remove player from the game
         territory_conquered.setRuler(conqueror)
         territory_conquered.setTroops(occupying_force)
         print(f"{territory_conquered.name} was conquered by {conqueror.color}")
@@ -417,7 +423,7 @@ class Game:
 
             self.rollDice()
 
-            # number of battles depends on lowest number of troops >>>
+            # number of battles depends on lowest number of troops >
             for battle in range(min(defending_troops, attacking_troops - 1)):
                 if self.dice[0][battle] >= self.dice[1][battle]:   # defence wins battle
                     self.first_territory.removeTroop()
@@ -425,8 +431,10 @@ class Game:
                     defending_territory.removeTroop()
             
             print()
-            print(f"{self.first_territory.name} lost: {attacking_troops - self.first_territory.getTroops()}")
-            print(f"{defending_territory.name} lost: {defending_troops - defending_territory.getTroops()}")
+            print(f"{self.first_territory.name} lost: {attacking_troops - self.first_territory.getTroops()} by "
+                  f"rolling {self.dice[1]}")
+            print(f"{defending_territory.name} lost: {defending_troops - defending_territory.getTroops()} by rolling "
+                  f"{self.dice[0]}")
             print(f"troops available: {self.first_territory.name} {self.first_territory.getTroops()} |", end=" ")
             print(f"{defending_territory.getTroops()} {defending_territory.name}")
         
@@ -440,15 +448,17 @@ class Game:
 
     def askTroops(self, purpose: str) -> int:
         
-        troops: int     # input (can't get input after .destroy())
+        troops: int = 0     # input (can't get input after .destroy())
         
         master: tk.Tk = tk.Tk()     # create window
+        master.title("DRAFT")
         tk.Label(master, text = purpose).grid(row = 0, column = 0)      # info text
         troops_field: tk.Entry = tk.Entry(master)   # input field
         troops_field.grid(row = 0, column = 1)
         tk.Button(master, text = "confirm", command = master.quit).grid(row = 1)    # confirmation button
         tk.mainloop()
-        troops = int(troops_field.get())
+        if troops_field.get() != "":    # no value given
+            troops = int(troops_field.get())
         master.destroy()    # close window
         return troops
     
