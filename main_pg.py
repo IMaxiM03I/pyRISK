@@ -59,18 +59,9 @@ while running:
             if game.phase == 1 and not selected_territory.isNull():     # draft phase
                 game.setFirstTerritory(selected_territory)
                 if game.first_territory.ruler == game.active_player:      # selected a valid territory
+                    game.draftTroops()
                     
-                    troops_to_be_added: int = int(input(f"troops drafted to {game.first_territory.name}: "))
-                    troops_to_be_added = min(troops_to_be_added, game.active_player.available_troops)
-                    game.first_territory.addTroops(troops_to_be_added)
-                    game.active_player.removeTroops(troops_to_be_added)
-                    print(f"{troops_to_be_added} troops drafted to {game.first_territory.name}", end=" ")
-                    print(f"--- total: {game.first_territory.troops_stationed}")
-
-                    if game.active_player.available_troops > 0:
-                        print(f"{game.active_player.available_troops} troops left to be added")
-                        print()
-
+                    # check if draft phase is over
                     if game.active_player.available_troops == 0:
                         game.passPhase()
             
@@ -89,7 +80,7 @@ while running:
 
     game.drawTerritories(screen)
     
-    # --- HUD --- #
+    # --- UI --- #
     
     # current phase #
     phase_font = pg.font.Font(None, 50)

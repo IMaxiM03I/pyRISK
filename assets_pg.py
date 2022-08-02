@@ -1,5 +1,6 @@
 import pygame as pg
 from pygame.locals import *
+import tkinter as tk
 from constants import *
 import random
 
@@ -434,6 +435,34 @@ class Game:
         else:   # attack failed
             print(f"{defending_territory.name} defended fiercely and annihilated {self.first_territory.name}'s "
                   f"attacking force")
+
+    def askTroops(self, purpose: str) -> int:
+        
+        troops: int     # input (can't get input after .destroy())
+        
+        master: tk.Tk = tk.Tk()     # create window
+        tk.Label(master, text = purpose).grid(row = 0, column = 0)      # info text
+        troops_field: tk.Entry = tk.Entry(master)   # input field
+        troops_field.grid(row = 0, column = 1)
+        tk.Button(master, text = "confirm", command = master.quit).grid(row = 1)    # confirmation button
+        tk.mainloop()
+        troops = int(troops_field.get())
+        master.destroy()    # close window
+        return troops
+    
+    def draftTroops(self) -> None:
+        
+        # ask how many troops should be drafted >
+        troops_drafted: int = self.askTroops(f"troops drafted to {self.first_territory.name}: ")
+        # check that the given number doesn't exceed the max >
+        troops_drafted = min(troops_drafted, self.active_player.available_troops)
+        # check that the given number isn't negative >
+        troops_drafted = max(0, troops_drafted)
+        
+        # draft troops >>>
+        self.first_territory.addTroops(troops_drafted)
+        self.active_player.removeTroops(troops_drafted)
+        # <<<
 
 
 # NULL OBJECTS #
