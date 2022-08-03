@@ -402,7 +402,37 @@ class Game:
         if self.phase == 4:     # there are only 3 phases: draft, attack, fortify
             self.phase = 1
             self.passTurn()     # at the end of phase 3, it is the next player's turn
-            
+
+    def askTroops(self, purpose: str) -> int:
+    
+        troops: int = 0  # input (can't get input after .destroy())
+    
+        master: tk.Tk = tk.Tk()  # create window
+        master.title("DRAFT")
+        tk.Label(master, text = purpose).grid(row = 0, column = 0)  # info text
+        troops_field: tk.Entry = tk.Entry(master)  # input field
+        troops_field.grid(row = 0, column = 1)
+        tk.Button(master, text = "confirm", command = master.quit).grid(row = 1)  # confirmation button
+        tk.mainloop()
+        if troops_field.get() != "":  # no value given
+            troops = int(troops_field.get())
+        master.destroy()  # close window
+        return troops
+
+    def draftTroops(self) -> None:
+    
+        # ask how many troops should be drafted >
+        troops_drafted: int = self.askTroops(f"troops drafted to {self.first_territory.name}: ")
+        # check that the given number doesn't exceed the max >
+        troops_drafted = min(troops_drafted, self.active_player.available_troops)
+        # check that the given number isn't negative >
+        troops_drafted = max(0, troops_drafted)
+    
+        # draft troops >>>
+        self.first_territory.addTroops(troops_drafted)
+        self.active_player.removeTroops(troops_drafted)
+        # <<<
+    
     def conquerTerritory(self, territory_conquered_id: str, conqueror: Player, occupying_force: int) -> None:
         territory_conquered: Territory = self.findTerritory(territory_conquered_id)
         if self.countPlayerTerritories(territory_conquered.ruler) == 1:     # this was the enemy player's last territory
@@ -445,36 +475,18 @@ class Game:
         else:   # attack failed
             print(f"{defending_territory.name} defended fiercely and annihilated {self.first_territory.name}'s "
                   f"attacking force")
-
-    def askTroops(self, purpose: str) -> int:
-        
-        troops: int = 0     # input (can't get input after .destroy())
-        
-        master: tk.Tk = tk.Tk()     # create window
-        master.title("DRAFT")
-        tk.Label(master, text = purpose).grid(row = 0, column = 0)      # info text
-        troops_field: tk.Entry = tk.Entry(master)   # input field
-        troops_field.grid(row = 0, column = 1)
-        tk.Button(master, text = "confirm", command = master.quit).grid(row = 1)    # confirmation button
-        tk.mainloop()
-        if troops_field.get() != "":    # no value given
-            troops = int(troops_field.get())
-        master.destroy()    # close window
-        return troops
     
-    def draftTroops(self) -> None:
+    def fortify(self, destination: Territory) -> None:
         
-        # ask how many troops should be drafted >
-        troops_drafted: int = self.askTroops(f"troops drafted to {self.first_territory.name}: ")
-        # check that the given number doesn't exceed the max >
-        troops_drafted = min(troops_drafted, self.active_player.available_troops)
-        # check that the given number isn't negative >
-        troops_drafted = max(0, troops_drafted)
+        troops_moved: int = self.askTroops(f"troops to be moved from {self.first_territory.name} to {destination.name}")
+        # check that the input number is valid
+        troops_moved = min(max(troops_moved, 0), self.first_territory.troops_stationed - 1)
         
-        # draft troops >>>
-        self.first_territory.addTroops(troops_drafted)
-        self.active_player.removeTroops(troops_drafted)
-        # <<<
+        # fortify
+        if troops_moved != 0:   # redundancy
+            self.first_territory.removeTroops(troops_moved)
+            destination.addTroops(troops_moved)
+            self.passPhase()    # can only fortify once
 
 
 # NULL OBJECTS #

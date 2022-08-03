@@ -13,3 +13,5 @@ FPS: int = 60
 FONT_SIZE: int = 50
 TEXT_COLOR: str = "white"
 TEXT_BG_COLOR: str = "black"
+
+DARK_COLORS: list[str] = ["black", "red", "blue"]
