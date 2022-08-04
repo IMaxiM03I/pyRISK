@@ -403,7 +403,7 @@ class Game:
             while player.getTroops() != 0:
                 # select random territory owned by 'player' and add random amount of troops out of those remaining
                 # for balancing purposes, avoid placing too many troops on a single territory >
-                troops_placed = random.randint(1, min(5, player.getTroops()))
+                troops_placed = random.randint(1, min(3, player.getTroops()))
                 random.choice(player_territories).addTroops(troops_placed)
                 player.removeTroops(troops_placed)
         
@@ -487,7 +487,6 @@ class Game:
             self.players.remove(territory_conquered.ruler)      # remove player from the game
         territory_conquered.setRuler(conqueror)
         territory_conquered.setTroops(occupying_force)
-        print(f"{territory_conquered.name} was conquered by {conqueror.color}")
 
     def attack(self, defending_territory: Territory) -> None:
 
@@ -502,7 +501,7 @@ class Game:
             self.rollDice()
 
             # number of battles depends on lowest number of troops >
-            for battle in range(min(defending_troops, attacking_troops - 1)):
+            for battle in range(min(min(defending_troops, 2), min(attacking_troops - 1, 3))):
                 if self.dice[0][battle] >= self.dice[1][battle]:   # defence wins battle
                     self.first_territory.removeTroop()
                 else:

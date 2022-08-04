@@ -165,3 +165,5 @@ while running:
     clock.tick(FPS)
 
 pg.quit()
+
+print("thanks for playing!")
