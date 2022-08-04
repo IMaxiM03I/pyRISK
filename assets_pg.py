@@ -3,6 +3,7 @@ from pygame.locals import *
 import tkinter as tk
 from constants import *
 import random
+import time
 
 
 class Player:
@@ -210,6 +211,8 @@ class Game:
 
     def __init__(self, continents: dict[str: Continent]) -> None:
         
+        print("commencing game setup...\n")
+        
         # players #
         self.players: list[Player] = []
         self.active_player: Player = NULL_PLAYER
@@ -231,7 +234,11 @@ class Game:
         # init #
         self.create_players()
         self.assignTerritories()
+        self.autoSetupTroops()
         self.passPhase()
+        
+        print("starting game...")
+        time.sleep(2)
     
     ### SETTERS ###
 
@@ -272,6 +279,8 @@ class Game:
     # --- players --- #
     
     def create_players(self) -> None:
+        
+        print("creating players...")
         # n_players: int = int(input("enter the number of players: "))
         n_players: int = 6
         colors: list[str] = ["green", "red", "blue", "black", "orange", "purple"]
@@ -298,7 +307,9 @@ class Game:
             
             self.players.append(Player(color))
         
-        self.active_player = self.players[0]
+        self.active_player = self.players[random.randint(0, len(self.players) - 1)]     # assign random player as starting player
+        
+        print("players created\n")
 
     def passTurn(self) -> None:
         player_turn: int = self.players.index(self.active_player)
@@ -306,9 +317,6 @@ class Game:
         if player_turn == len(self.players):
             player_turn = 0
         self.active_player = self.players[player_turn]
-        
-        # add drafting troops #
-        self.active_player.setTroops(self.calculateDraftTroops(self.active_player))
         
     def countPlayerTerritories(self, player: Player) -> int:
 
@@ -321,6 +329,17 @@ class Game:
         
         return count
 
+    def getPlayerTerritories(self, player: Player) -> list[Territory]:
+        
+        territories: list[Territory] = []
+        
+        for continent in self.getContinentsList():
+            for territory in continent.getTerritoriesList():
+                if territory.ruler.color == player.color:
+                    territories.append(territory)
+        
+        return territories
+    
     def calculateDraftTroops(self, player: Player) -> int:
         draft_troops: int = 3   # by default, player gets 3 troops
 
@@ -335,6 +354,8 @@ class Game:
     # --- map --- #
 
     def assignTerritories(self) -> None:
+        
+        print("assigning territories...")
         
         chosen_continent: Continent = random.choice(self.getContinentsList())
         chosen_territory: Territory = random.choice(chosen_continent.getTerritoriesList())
@@ -364,7 +385,30 @@ class Game:
             
             assigning_territories = not empty_territories_left
             self.passTurn()
+        
+        print("territories assigned\n")
 
+    def autoSetupTroops(self) -> None:
+        
+        print("placing random troops...")
+    
+        for player in self.players:
+            # for 3 players, 35 troops per player
+            # for 4 players, 30 troops per player
+            # for 5 players, 25 troops per player
+            # for 6 players, 20 troops per player
+            # 1 troop has already been placed when assigning territories
+            player.setTroops(35 - (len(self.players) - 3) * 5 - 1)
+            player_territories: list[Territory] = self.getPlayerTerritories(player)
+            while player.getTroops() != 0:
+                # select random territory owned by 'player' and add random amount of troops out of those remaining
+                # for balancing purposes, avoid placing too many troops on a single territory >
+                troops_placed = random.randint(1, min(5, player.getTroops()))
+                random.choice(player_territories).addTroops(troops_placed)
+                player.removeTroops(troops_placed)
+        
+        print("troops placed\n")
+    
     def drawTerritories(self, screen: pg.Surface) -> None:
         for continent in self.continents_list:
             continent.drawTerritories(screen)
@@ -403,16 +447,20 @@ class Game:
             self.phase = 1
             self.passTurn()     # at the end of phase 3, it is the next player's turn
 
+        if self.phase == 1:
+            # add drafting troops #
+            self.active_player.setTroops(self.calculateDraftTroops(self.active_player))
+
     def askTroops(self, purpose: str) -> int:
-    
+        
         troops: int = 0  # input (can't get input after .destroy())
     
         master: tk.Tk = tk.Tk()  # create window
-        master.title("DRAFT")
+        master.title("TROOPS")
         tk.Label(master, text = purpose).grid(row = 0, column = 0)  # info text
         troops_field: tk.Entry = tk.Entry(master)  # input field
         troops_field.grid(row = 0, column = 1)
-        tk.Button(master, text = "confirm", command = master.quit).grid(row = 1)  # confirmation button
+        tk.Button(master, text = "confirm", command = master.quit).grid(row = 1)    # confirmation button
         tk.mainloop()
         if troops_field.get() != "":  # no value given
             troops = int(troops_field.get())

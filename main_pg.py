@@ -31,13 +31,6 @@ running: bool = True
 ### ------ FUNCTIONS ------ ###
 
 
-def printTerritories(Tlist: list[Territory]) -> None:
-    print("[", end = "")
-    for territory in Tlist:
-        print(territory.name, end = ",")
-    print("]")
-
-
 # recursively determine whether 2 territories are connected by checking if the neighbours of T2, with ruler equal to T2's ruler, are connected to T1
 def areConnected(territory1: Territory, territory2: Territory, territories_traversed: list[Territory] | None = None) -> bool:
     if territories_traversed is None:
@@ -150,7 +143,7 @@ while running:
     phase_text_rect = phase_text.get_rect(center=(WIDTH//2, 9*HEIGHT//10))
     screen.blit(phase_text, phase_text_rect)
     
-    # selected territory #
+    # selected territory's troops #
     if not selected_territory.isNull():
         troops_font = pg.font.Font(None, FONT_SIZE)
         troops_text = troops_font.render(selected_territory.name, True, Color(selected_territory.ruler.color), TEXT_BG_COLOR)
