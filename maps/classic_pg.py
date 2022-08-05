@@ -38,7 +38,7 @@ european_terr: dict[str: Territory] = {
 african_terr: dict[str: Territory] = {
     "n africa": Territory(name="North Africa", neighbours=["brazil", "w europe", "s europe", "egypt", "e africa", "congo"], x=412, y=364),
     "egypt": Territory(name="Egypt", neighbours=["n africa", "s europe", "middle e", "e africa"], x=494, y=330),
-    "e africa": Territory(name="East Africa", neighbours=["n africa", "egypt", "madagascar", "middle e", "congo"], x=558, y=426),
+    "e africa": Territory(name="East Africa", neighbours=["n africa", "egypt", "madagascar", "middle e", "s africa", "congo"], x=558, y=426),
     "congo": Territory(name="Congo", neighbours=["n africa", "e africa", "s africa"], x=488, y=456),
     "s africa": Territory(name="South Africa", neighbours=["congo", "e africa", "madagascar"], x=492, y=555),
     "madagascar": Territory(name="Madagascar", neighbours=["s africa", "e africa"], x=608, y=552)

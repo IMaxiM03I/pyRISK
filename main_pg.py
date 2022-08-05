@@ -125,7 +125,7 @@ while running:
     # end game #
     if len(game.players) == 1:
         running = False
-        print(f"\ngame over, {game.players[0].color} wins through world conquest!")
+        print(f"\ngame over, {game.players[0].color.upper()} wins through world conquest!")
     
     # REFRESH #
     
