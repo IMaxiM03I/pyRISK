@@ -244,11 +244,6 @@ class Game:
 
     def setFirstTerritory(self, territory: Territory) -> None:
         self.first_territory = territory
-
-        if self.phase == 2:
-            print(f"attacking from {self.first_territory.name}")
-        elif self.phase == 3:
-            print(f"moving troops from {self.first_territory.name}")
     
     def rollDice(self) -> None:
         for role in range(len(self.dice)):
@@ -342,6 +337,12 @@ class Game:
     
     def calculateDraftTroops(self, player: Player) -> int:
         draft_troops: int = 3   # by default, player gets 3 troops
+        
+        # bonus troops for number of territories owned >>>
+        territories_owned: int = self.countPlayerTerritories(player)
+        if territories_owned >= 12:
+            draft_troops += territories_owned//3 - 3
+        # <<<
 
         # bonus troops for ruling entire continents >>>
         for continent in self.continents_list:
@@ -519,6 +520,7 @@ class Game:
         if defending_territory.getTroops() == 0:    # attack successful
             self.conquerTerritory(defending_territory.getID(), self.active_player, self.first_territory.getTroops()-1)
             self.first_territory.setTroops(1)
+            self.setFirstTerritory(defending_territory)
         else:   # attack failed
             print(f"{defending_territory.name} defended fiercely and annihilated {self.first_territory.name}'s "
                   f"attacking force")

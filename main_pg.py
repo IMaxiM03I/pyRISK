@@ -59,6 +59,12 @@ def areConnected(territory1: Territory, territory2: Territory, territories_trave
     return False
 
 
+# mark a given territory with a square of a given color
+def squareMark(territory: Territory, square_color: str) -> None:
+    pg.draw.rect(screen, Color(square_color), (territory.x - TERRITORY_MARKER_RADIUS, territory.y - TERRITORY_MARKER_RADIUS,
+                 TERRITORY_MARKER_RADIUS*2, TERRITORY_MARKER_RADIUS*2), 3)
+
+
 ### ------ CLASSES ------ ###
 
 
@@ -66,6 +72,8 @@ def areConnected(territory1: Territory, territory2: Territory, territories_trave
 
 
 while running:
+    
+    # EVENTS #
 
     for event in pg.event.get():
 
@@ -95,14 +103,16 @@ while running:
                         game.passPhase()
             
             elif game.phase == 2:     # attack phase
-                if selected_territory.ruler == game.active_player:
+                if selected_territory.ruler == game.active_player or selected_territory.isNull():
                     game.setFirstTerritory(selected_territory)
                 elif game.hasSelectedFirstTerritory() and selected_territory.getID() in game.first_territory.getNeighbours() and \
                         selected_territory.ruler != game.first_territory.ruler:
                     game.attack(selected_territory)
-            
+                    
             elif game.phase == 3:   # fortify phase
-                if selected_territory.ruler == game.active_player:
+                if selected_territory.isNull():
+                    game.setFirstTerritory(NULL_TERRITORY)
+                elif selected_territory.ruler == game.active_player:
                     if game.hasSelectedFirstTerritory() and game.first_territory != selected_territory and areConnected(game.first_territory, selected_territory):
                         game.fortify(selected_territory)
                     else:
@@ -110,6 +120,13 @@ while running:
                 else:
                     game.setFirstTerritory(NULL_TERRITORY)
 
+    # GAME #
+    
+    # end game #
+    if len(game.players) == 1:
+        running = False
+        print(f"\ngame over, {game.players[0].color} wins through world conquest!")
+    
     # REFRESH #
     
     # --- map --- #
@@ -142,6 +159,54 @@ while running:
     phase_text = phase_font.render(game.getPhaseStr(), True, TEXT_COLOR, TEXT_BG_COLOR)
     phase_text_rect = phase_text.get_rect(center=(WIDTH//2, 9*HEIGHT//10))
     screen.blit(phase_text, phase_text_rect)
+
+    # draft phase #
+    if game.phase == 1:
+        phase_info_font = pg.font.Font(None, FONT_SIZE)
+        phase_info_text = phase_info_font.render(("+" + str(game.active_player.available_troops)), True, game.active_player.color, TEXT_BG_COLOR)
+        if game.active_player.color in DARK_COLORS:
+            phase_info_text = phase_info_font.render(("+" + str(game.active_player.available_troops)), True, game.active_player.color, "white")
+        phase_info_text_rect = phase_info_text.get_rect(center = (19 * WIDTH // 20, HEIGHT // 2))
+        screen.blit(phase_info_text, phase_info_text_rect)
+    
+    # possible attacks markers #
+    # draw a square around all territories that can be attacked
+    if game.phase == 2:
+        if game.hasSelectedFirstTerritory() and game.first_territory.troops_stationed > 1:  # mark only neighbouring territories to 'game.first_territory'
+            for neighbour in game.first_territory.neighbours:
+                neighbour_territory: Territory = game.findTerritory(neighbour)
+                if neighbour_territory.ruler != game.active_player:
+                    squareMark(neighbour_territory, game.active_player.color)
+        else:
+            for player_territory in game.getPlayerTerritories(game.active_player):      # list all territories owned by the active player
+                if player_territory.troops_stationed > 1:   # can't attack with only 1 troop stationed
+                    for neighbour in player_territory.getNeighbours():
+                        neighbour_territory: Territory = game.findTerritory(neighbour)
+                        if neighbour_territory.ruler != game.active_player:
+                            squareMark(neighbour_territory, game.active_player.color)
+    
+    # mark possible origins / destinations during fortify phase #
+    if game.phase == 3:
+        # origins
+        if not game.hasSelectedFirstTerritory():
+            for player_territory in game.getPlayerTerritories(game.active_player):
+                if player_territory.troops_stationed > 1:   # need at least 2 troops stationed to fortify
+                    # filter only territories which have at least 1 friendly neighbour >>>
+                    has_friendly_neighbour: bool = False
+                    i: int = 0
+                    while not has_friendly_neighbour and i < len(player_territory.neighbours):
+                        if game.findTerritory(player_territory.neighbours[i]).ruler.color == game.active_player.color:
+                            has_friendly_neighbour = True
+                        i += 1
+                    # <<<
+                    if has_friendly_neighbour:
+                        squareMark(player_territory, game.active_player.color)
+                    
+        # destinations
+        elif game.first_territory.troops_stationed > 1:
+            for player_territory in game.getPlayerTerritories(game.active_player):
+                if player_territory != game.first_territory and areConnected(game.first_territory, player_territory):
+                    squareMark(player_territory, game.active_player.color)
     
     # selected territory's troops #
     if not selected_territory.isNull():
@@ -151,15 +216,6 @@ while running:
             troops_text = troops_font.render(selected_territory.name, True, Color(selected_territory.ruler.color), "white")
         troops_text_rect = troops_text.get_rect(center=(WIDTH//2, 19*HEIGHT//20))
         screen.blit(troops_text, troops_text_rect)
-    
-    # draft phase #
-    if game.phase == 1:
-        phase_info_font = pg.font.Font(None, FONT_SIZE)
-        phase_info_text = phase_info_font.render(("+"+str(game.active_player.available_troops)), True, game.active_player.color, TEXT_BG_COLOR)
-        if game.active_player.color in DARK_COLORS:
-            phase_info_text = phase_info_font.render(("+"+str(game.active_player.available_troops)), True, game.active_player.color, "white")
-        phase_info_text_rect = phase_info_text.get_rect(center=(19*WIDTH//20, HEIGHT//2))
-        screen.blit(phase_info_text, phase_info_text_rect)
     
     pg.display.update()
     clock.tick(FPS)

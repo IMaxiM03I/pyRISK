@@ -38,7 +38,7 @@ european_terr: dict[str: Territory] = {
 african_terr: dict[str: Territory] = {
     "n africa": Territory(name="North Africa", neighbours=["brazil", "w europe", "s europe", "egypt", "e africa", "congo"], x=412, y=364),
     "egypt": Territory(name="Egypt", neighbours=["n africa", "s europe", "middle e", "e africa"], x=494, y=330),
-    "e africa": Territory(name="East Africa", neighbours=["n africa", "egypt", "madagascar", "s europe", "congo"], x=558, y=426),
+    "e africa": Territory(name="East Africa", neighbours=["n africa", "egypt", "madagascar", "middle e", "congo"], x=558, y=426),
     "congo": Territory(name="Congo", neighbours=["n africa", "e africa", "s africa"], x=488, y=456),
     "s africa": Territory(name="South Africa", neighbours=["congo", "e africa", "madagascar"], x=492, y=555),
     "madagascar": Territory(name="Madagascar", neighbours=["s africa", "e africa"], x=608, y=552)
@@ -50,7 +50,7 @@ asian_terr: dict[str: Territory] = {
     "siberia": Territory(name="Siberia", neighbours=["ural", "yakutsk", "irkutsk", "mongolia", "china", "afghanistan"], x=700, y=100),
     "yakutsk": Territory(name="Yakutsk", neighbours=["siberia", "kamchatka", "irkutsk"], x=768, y=64),
     "irkutsk": Territory(name="Irkutsk", neighbours=["siberia", "yakutsk", "kamchatka", "mongolia"], x=762, y=130),
-    "mongolia": Territory(name="Mongolia", neighbours=["sibera", "irkutsk", "kamchatka", "japan", "china"], x=784, y=185),
+    "mongolia": Territory(name="Mongolia", neighbours=["siberia", "irkutsk", "kamchatka", "japan", "china"], x=784, y=185),
     "kamchatka": Territory(name="Kamchatka", neighbours=["irkutsk", "yakutsk", "alaska", "japan", "mongolia"], x=846, y=74),
     "japan": Territory(name="Japan", neighbours=["mongolia", "kamchatka"], x=888, y=190),
     "afghanistan": Territory(name="Afghanistan", neighbours=["ukraine", "ural", "china", "india", "middle e"], x=634, y=205),
