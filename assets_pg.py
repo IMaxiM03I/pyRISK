@@ -130,7 +130,7 @@ class Territory:
 
 class Continent:
 
-    def __init__(self, name: str = "n/a", territories: dict[str: Territory] | None = None, bonus_troops: int = 0,
+    def __init__(self, name: str = "n/a", continent_id: str = "", territories: dict[str: Territory] | None = None, bonus_troops: int = 0,
                  is_null: bool = False) -> None:
         
         self.null_type: bool = is_null
@@ -139,6 +139,7 @@ class Continent:
         
         # geography #
         self.name: str = name
+        self.id: str = continent_id
         self.territories: dict[str: Territory] = territories
         
         self.territories_list: list[Territory] = []
@@ -166,6 +167,9 @@ class Continent:
     def getName(self) -> str:
         return self.name
 
+    def getID(self) -> str:
+        return self.id
+    
     def getTerritories(self) -> dict[str: Territory]:
         return self.territories
 
@@ -205,6 +209,9 @@ class Continent:
                 return False
         
         return True
+
+    def countTerritories(self) -> int:
+        return len(self.getTerritoriesList())
 
 
 class Game:
@@ -276,31 +283,21 @@ class Game:
     def create_players(self) -> None:
         
         print("creating players...")
-        # n_players: int = int(input("enter the number of players: "))
-        n_players: int = 6
-        colors: list[str] = ["green", "red", "blue", "black", "orange", "purple"]
+        n_players: int = int(input("enter the number of players: "))
+        available_colors: list[str] = ["green", "red", "blue", "black", "orange", "purple"]
         color: str
-        color_taken: bool = False
 
         for i in range(n_players):
 
             # choose player color #
-            # color = input(f"enter player {i+1}'s color: ")
-
-            color = colors[i]
+            color = input(f"choose color for player {i+1} (available: {available_colors}): ")
             
-            for player in self.players:
-                if player.color == color:
-                    color_taken = True
+            # check color availability >>>
+            while color not in available_colors:
+                color = input(f"color not available, choose one of {available_colors}: ")
+            # <<<
             
-            while color_taken:
-                color_taken = False
-                color = input("color taken, choose a different one: ")
-                for player in self.players:
-                    if player.color == color:
-                        color_taken = True
-            
-            self.players.append(Player(color))
+            self.players.append(Player(color))      # add player
         
         self.active_player = self.players[random.randint(0, len(self.players) - 1)]     # assign random player as starting player
         
@@ -415,13 +412,37 @@ class Game:
             continent.drawTerritories(screen)
 
     def findTerritory(self, territory_id: str) -> Territory:
-        territory: Territory = NULL_TERRITORY
         for continent in self.getContinentsList():
-            if territory.isNull():
-                territory = continent.findTerritory(territory_id)
-        
-        return territory
+            territory = continent.findTerritory(territory_id)
+            if not territory.isNull():
+                return territory
+        return NULL_TERRITORY
 
+    def findTerritoryContinent(self, territory_id: str) -> Continent:
+        for continent in self.getContinentsList():
+            territory = continent.findTerritory(territory_id)
+            if territory.isNull():
+                return continent
+        return NULL_CONTINENT
+    
+    def findContinent(self, continent_id: str) -> Continent:
+        if continent_id in self.getContinents().keys():
+            return self.getContinents()[continent_id]
+        return NULL_CONTINENT
+    
+    def getLargestContinent(self) -> Continent:
+        largest_continent: Continent = NULL_CONTINENT
+        for continent in self.getContinentsList():
+            if len(continent.getTerritoriesList()) > len(largest_continent.getTerritoriesList()):
+                largest_continent = continent
+        return largest_continent
+    
+    def countTerritories(self) -> int:
+        count: int = 0
+        for continent in self.getContinentsList():
+            count += continent.countTerritories()
+        return count
+    
     def selectTerritory(self, click_coords: tuple[int, int]) -> Territory:
 
         """

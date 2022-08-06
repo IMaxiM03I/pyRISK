@@ -36,7 +36,7 @@ running: bool = True
 def areConnected(territory1: Territory, territory2: Territory, territories_traversed: list[Territory] | None = None) -> bool:
     if territories_traversed is None:
         territories_traversed = [territory2]
-    elif len(territories_traversed) > len(classic_continents["n america"].getTerritoriesList()):
+    elif len(territories_traversed) > game.countTerritories():      # if more territories have been visited than there are in the map, something went wrong
         raise Exception(f"recursion depth too long: trying to find connection from {territory2.name} to {territory1.name}")
     
     # territories owned by different players are never connected
