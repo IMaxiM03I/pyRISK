@@ -3,6 +3,7 @@ from constants import *
 from pygame.locals import *
 from assets_pg import *
 from maps.classic_pg import *
+from math import sqrt
 
 
 ### ----- VARIABLES ------ ###
@@ -21,7 +22,7 @@ troops_font: pg.font.Font
 
 pg.init()
 screen: pg.Surface = pg.display.set_mode((WIDTH, HEIGHT))
-pg.display.set_caption("shitty RISK")
+pg.display.set_caption("'we have RISK at home'; RISK at home:")
 
 clock: pg.time.Clock = pg.time.Clock()
 
@@ -36,7 +37,7 @@ def areConnected(territory1: Territory, territory2: Territory, territories_trave
     if territories_traversed is None:
         territories_traversed = [territory2]
     elif len(territories_traversed) > len(classic_continents["n america"].getTerritoriesList()):
-        raise Exception(f"recursion depth too long: trying to find connection to {territory1.name}")
+        raise Exception(f"recursion depth too long: trying to find connection from {territory2.name} to {territory1.name}")
     
     # territories owned by different players are never connected
     if territory1.ruler.color != territory2.ruler.color:
@@ -52,17 +53,29 @@ def areConnected(territory1: Territory, territory2: Territory, territories_trave
         # check only neighbour territories that are owned by the same player and have not yet been traversed
         if neighbour_territory.ruler.color == territory1.ruler.color and neighbour_territory not in territories_traversed:
             territories_traversed.append(neighbour_territory)
-            return areConnected(territory1, neighbour_territory, territories_traversed)
+            if areConnected(territory1, neighbour_territory, territories_traversed):
+                return True
     
+    # remove T2 as it didn't contribute
     if territory2 in territories_traversed:
         territories_traversed.remove(territory2)
     return False
 
 
 # mark a given territory with a square of a given color
-def squareMark(territory: Territory, square_color: str) -> None:
-    pg.draw.rect(screen, Color(square_color), (territory.x - TERRITORY_MARKER_RADIUS, territory.y - TERRITORY_MARKER_RADIUS,
+def squareMark(territory: Territory, mark_color: str) -> None:
+    pg.draw.rect(screen, Color(mark_color), (territory.x - TERRITORY_MARKER_RADIUS, territory.y - TERRITORY_MARKER_RADIUS,
                  TERRITORY_MARKER_RADIUS*2, TERRITORY_MARKER_RADIUS*2), 3)
+
+
+def triangleMark(territory: Territory, mark_color: str) -> None:
+    sw_point: tuple[int, int] = (territory.x - ATTACKER_MARKER_SIDE_LENGTH // 2, territory.y + TERRITORY_MARKER_RADIUS)  # math
+    se_point: tuple[int, int] = (territory.x + ATTACKER_MARKER_SIDE_LENGTH // 2, sw_point[1])  # math
+    n_point: tuple[int, int] = (territory.x, territory.y - (int(sqrt(3) * ATTACKER_MARKER_SIDE_LENGTH / 2) - TERRITORY_MARKER_RADIUS))
+    
+    pg.draw.line(screen, Color(mark_color), sw_point, se_point, 3)
+    pg.draw.line(screen, Color(mark_color), sw_point, n_point, 3)
+    pg.draw.line(screen, Color(mark_color), n_point, se_point, 3)
 
 
 ### ------ CLASSES ------ ###
@@ -185,6 +198,10 @@ while running:
                         if neighbour_territory.ruler != game.active_player:
                             squareMark(neighbour_territory, game.active_player.color)
     
+    # attacker / fortify origin marker #
+    if game.phase >= 2 and game.hasSelectedFirstTerritory():
+        triangleMark(game.first_territory, game.active_player.color)
+    
     # mark possible origins / destinations during fortify phase #
     if game.phase == 3:
         # origins
@@ -200,7 +217,7 @@ while running:
                         i += 1
                     # <<<
                     if has_friendly_neighbour:
-                        squareMark(player_territory, game.active_player.color)
+                        triangleMark(player_territory, game.active_player.color)
                     
         # destinations
         elif game.first_territory.troops_stationed > 1:

@@ -117,8 +117,8 @@ class Territory:
         
         # territory troops
         font: pg.font.Font = pg.font.Font(None, 4*FONT_SIZE//5)
-        text_color: str = TEXT_COLOR
-        if self.ruler.color == "black":
+        text_color: str = "black"
+        if self.ruler.color in DARK_COLORS:
             text_color = "white"
         troops_text = font.render(str(self.troops_stationed), True, text_color)
         troops_text_rect = troops_text.get_rect(center = (self.x, self.y))
@@ -457,7 +457,7 @@ class Game:
         troops: int = 0  # input (can't get input after .destroy())
     
         master: tk.Tk = tk.Tk()  # create window
-        master.title("TROOPS")
+        master.title(self.getPhaseStr())
         tk.Label(master, text = purpose).grid(row = 0, column = 0)  # info text
         troops_field: tk.Entry = tk.Entry(master)  # input field
         troops_field.grid(row = 0, column = 1)
