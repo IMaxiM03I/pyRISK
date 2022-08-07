@@ -77,12 +77,12 @@ aussie_terr: dict[str: Territory] = {
 ### DEFINE CONTINENTS ###
 
 classic_continents: dict[str: Continent] = {
-    "n america": Continent("North America", nAmerican_terr, 5),
-    "s america": Continent("South America", sAmerican_terr, 2),
-    "europe": Continent("Europe", european_terr, 5),
-    "africa": Continent("Africa", african_terr, 3),
-    "asia": Continent("Asia", asian_terr, 7),
-    "australia": Continent("Australia", aussie_terr, 2)
+    "n america": Continent("North America", "n america", nAmerican_terr, 5),
+    "s america": Continent("South America", "s america", sAmerican_terr, 2),
+    "europe": Continent("Europe", "europe", european_terr, 5),
+    "africa": Continent("Africa", "africa", african_terr, 3),
+    "asia": Continent("Asia", "asia", asian_terr, 7),
+    "australia": Continent("Australia", "australia", aussie_terr, 2)
 }
 
 for continent in classic_continents.values():
