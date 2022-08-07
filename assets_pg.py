@@ -560,8 +560,8 @@ class Game:
         self.conquerTerritory(territory_conquered, self.active_player)
     
         # determine how many troops should be carried over >>>
-        troops_moved: int = self.first_territory.getTroops() - 1  # if attacking territory only has 2 or 3 troops left, moving all but one troop is the only option
-        if self.first_territory.getTroops() >= 4:  # common case (troops left in attacking territory is >= 4)
+        troops_moved: int = self.first_territory.getTroops() - 1  # if attacking territory only has 2 to 4 troops left, moving all but one troop is the only option
+        if self.first_territory.getTroops() > 4:  # common case (troops left in attacking territory is > 4)
             # player can decide how many troops they want to carry over >
             troops_moved = self.askTroops(f"troops advancing from {self.first_territory.name} to {territory_conquered.name}")
             # check validity of 'troops_moved' (>= 1 troop must stay behind; non-negative; >= 3 troops need to be carried over) >
