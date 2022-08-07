@@ -283,20 +283,31 @@ class Game:
     def create_players(self) -> None:
         
         print("creating players...")
+        
+        # select number of players #
         n_players: int = int(input("enter the number of players: "))
+        while n_players not in range(2, 7):
+            n_players = int(input(f"{n_players} is an invalid number of players. please enter a number in the range [2; 6]: "))
+        
         available_colors: list[str] = ["green", "red", "blue", "black", "orange", "purple"]
         color: str
 
         for i in range(n_players):
 
-            # choose player color #
-            color = input(f"choose color for player {i+1} (available: {available_colors}): ")
+            # choose player color >>>
+            if len(available_colors) == 1:      # there is only 1 color left
+                color = available_colors[0]
+                print(f"player {n_players}'s color was set to {color} as it was the only one left")
+            else:
+                color = input(f"choose color for player {i+1} (available: {available_colors}): ")
+            # <<<
             
             # check color availability >>>
             while color not in available_colors:
                 color = input(f"color not available, choose one of {available_colors}: ")
             # <<<
             
+            available_colors.remove(color)      # update available colors
             self.players.append(Player(color))      # add player
         
         self.active_player = self.players[random.randint(0, len(self.players) - 1)]     # assign random player as starting player
@@ -503,32 +514,34 @@ class Game:
         self.active_player.removeTroops(troops_drafted)
         # <<<
     
-    def conquerTerritory(self, territory_conquered_id: str, conqueror: Player, occupying_force: int) -> None:
-        territory_conquered: Territory = self.findTerritory(territory_conquered_id)
-        if self.countPlayerTerritories(territory_conquered.ruler) == 1:     # this was the enemy player's last territory
-            self.players.remove(territory_conquered.ruler)      # remove player from the game
-        territory_conquered.setRuler(conqueror)
-        territory_conquered.setTroops(occupying_force)
+    def conquerTerritory(self, territory_conquered: Territory, conqueror: Player) -> None:
+        if self.countPlayerTerritories(territory_conquered.ruler) == 1:     # this was the enemy player's last territory -> remove player from the game
+            self.players.remove(territory_conquered.ruler)
+        territory_conquered.setRuler(conqueror)     # update ruler
 
     def attack(self, defending_territory: Territory) -> None:
 
         attacking_troops: int
         defending_troops: int
 
+        # keep attack going until 1 army is defeated
         while defending_territory.getTroops() > 0 and self.first_territory.getTroops() > 1:
             
             attacking_troops = self.first_territory.getTroops()
             defending_troops = defending_territory.getTroops()
 
             self.rollDice()
-
+            
+            # remove troops based on dice roll >>>
             # number of battles depends on lowest number of troops >
             for battle in range(min(min(defending_troops, 2), min(attacking_troops - 1, 3))):
                 if self.dice[0][battle] >= self.dice[1][battle]:   # defence wins battle
                     self.first_territory.removeTroop()
                 else:
                     defending_territory.removeTroop()
+            # <<<
             
+            # print dice roll >>>
             print()
             print(f"{self.first_territory.name} lost: {attacking_troops - self.first_territory.getTroops()} by "
                   f"rolling {self.dice[1]}")
@@ -536,15 +549,28 @@ class Game:
                   f"{self.dice[0]}")
             print(f"troops available: {self.first_territory.name} {self.first_territory.getTroops()} |", end=" ")
             print(f"{defending_territory.getTroops()} {defending_territory.name}")
+            # <<<
         
         print()
-        if defending_territory.getTroops() == 0:    # attack successful
-            self.conquerTerritory(defending_territory.getID(), self.active_player, self.first_territory.getTroops()-1)
-            self.first_territory.setTroops(1)
-            self.setFirstTerritory(defending_territory)
-        else:   # attack failed
-            print(f"{defending_territory.name} defended fiercely and annihilated {self.first_territory.name}'s "
-                  f"attacking force")
+    
+    # move troops stationed after a successful attack
+    def advanceTroops(self, territory_conquered: Territory) -> None:
+        
+        # set new ruler >
+        self.conquerTerritory(territory_conquered, self.active_player)
+    
+        # determine how many troops should be carried over >>>
+        troops_moved: int = self.first_territory.getTroops() - 1  # if attacking territory only has 2 or 3 troops left, moving all but one troop is the only option
+        if self.first_territory.getTroops() >= 4:  # common case (troops left in attacking territory is >= 4)
+            # player can decide how many troops they want to carry over >
+            troops_moved = self.askTroops(f"troops advancing from {self.first_territory.name} to {territory_conquered.name}")
+            # check validity of 'troops_moved' (>= 1 troop must stay behind; non-negative; >= 3 troops need to be carried over) >
+            troops_moved = max(min(troops_moved, self.first_territory.getTroops() - 1), 3)
+        # <<<
+    
+        territory_conquered.setTroops(troops_moved)  # carry over troops from attacking territory to conquered territory
+        self.first_territory.removeTroops(troops_moved)  # leave behind remaining troops
+        self.setFirstTerritory(territory_conquered)  # move player to next territory
     
     def fortify(self, destination: Territory) -> None:
         
