@@ -116,11 +116,26 @@ while running:
                         game.passPhase()
             
             elif game.phase == 2:     # attack phase
+                
+                # set attacking territory
                 if selected_territory.ruler == game.active_player or selected_territory.isNull():
                     game.setFirstTerritory(selected_territory)
+                
+                # begin attack
                 elif game.hasSelectedFirstTerritory() and selected_territory.getID() in game.first_territory.getNeighbours() and \
                         selected_territory.ruler != game.first_territory.ruler:
+                    
                     game.attack(selected_territory)
+                    # update screen so player can see how many troops they can work with >>>
+                    game.drawTerritories(screen)
+                    pg.display.update()
+                    time.sleep(0.1)     # pg needs a bit of time to update screen
+                    # <<<
+                    if selected_territory.getTroops() == 0:     # attack successful
+                        game.advanceTroops(selected_territory)
+                    else:  # attack failed
+                        print(f"{selected_territory.name} defended fiercely and annihilated {game.first_territory.name}'s "
+                              f"attacking force")
                     
             elif game.phase == 3:   # fortify phase
                 if selected_territory.isNull():
@@ -225,7 +240,7 @@ while running:
                 if player_territory != game.first_territory and areConnected(game.first_territory, player_territory):
                     squareMark(player_territory, game.active_player.color)
     
-    # selected territory's troops #
+    # selected territory's name #
     if not selected_territory.isNull():
         troops_font = pg.font.Font(None, FONT_SIZE)
         troops_text = troops_font.render(selected_territory.name, True, Color(selected_territory.ruler.color), TEXT_BG_COLOR)
