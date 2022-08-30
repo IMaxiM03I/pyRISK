@@ -357,7 +357,7 @@ class Game:
         return self.territory_cards_overflow
     
     def getPhaseStr(self) -> str:   # get phase as a string
-        return "DRAFT" if self.phase == 1 else "ATTACK" if self.phase == 2 else "FORTIFY"
+        return PHASE_NAMES[self.phase - 1]
     
     def hasSelectedFirstTerritory(self) -> bool:
         return not self.first_territory.isNull()
@@ -376,9 +376,9 @@ class Game:
         #     n_players = int(input(f"{n_players} is an invalid number of players. please enter a number in the range [3; 6]: "))
         
         # auto choose players #
-        n_players: int = 3
+        n_players: int = 6
         
-        available_colors: list[str] = ["green", "red", "blue", "black", "orange", "purple"]
+        available_colors: list[str] = ["green", "red", "blue", "dimgrey", "orange", "purple"]
         color: str
 
         for i in range(n_players):
@@ -392,8 +392,7 @@ class Game:
             # <<<
             
             # auto choose color #
-            
-            color = available_colors[i]
+            color = random.choice(available_colors)
             
             # check color availability >>>
             while color not in available_colors:

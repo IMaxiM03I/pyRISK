@@ -17,8 +17,6 @@ selected_territory: Territory = NULL_TERRITORY
 
 # fonts #
 phase_font: pg.font.Font    # "DRAFT", "ATTACK" or "FORTIFY"
-phase_info_font: pg.font.Font      # display additional info related to the current phase
-troops_font: pg.font.Font
 territory_card_font: pg.font.Font       # first territory card's design
 cards_exit_button_font: pg.font.Font    # X on exit button
 trade_button_font: pg.font.Font     # "TRADE" on trade button
@@ -40,6 +38,124 @@ running: bool = True
 
 ### ------ FUNCTIONS ------ ###
 
+
+# --- UI --- #
+
+def drawPlayerIcons(players: list[Player], active_player: Player, outline_width = 3) -> None:
+    
+    """
+    1 -> WIDTH//2
+    2 -> WIDTH//2 - GAP//2 - RADIUS
+    3 -> WIDTH//2 - GAP - 2 * RADIUS
+    ...
+    """
+
+    player_icon_x_0: int = WIDTH//2 - (len(players) - 1) * PLAYER_ICON_GAP//2 - (len(players) - 1) * PLAYER_ICON_RADIUS    # math
+    
+    backplate_x: int = player_icon_x_0 - (2 * PLAYER_ICON_RADIUS)
+    backplate_y: int = -WIDTH//50
+    backplate_width: int = (len(players) - 1) * PLAYER_ICON_GAP + (len(players) + 1) * (2 * PLAYER_ICON_RADIUS)
+    backplate_height: int = int(2.8 * PLAYER_ICON_HEIGHT)
+    
+    # backplate #
+    pg.draw.rect(screen, Color(PLAYER_ICONS_BACKPLATE_COLOR), (backplate_x, backplate_y, backplate_width, backplate_height), 0, PLAYER_ICONS_BACKPLATE_ROUND_CORNER)
+    
+    # player icons #
+    for player_index, player in enumerate(players):
+        
+        player_icon_x: int = player_icon_x_0 + (player_index * PLAYER_ICON_GAP) + (player_index * (2 * PLAYER_ICON_RADIUS))    # math
+        player_icon_y: int = PLAYER_ICON_HEIGHT
+        outline_color: list[int, int, int] = [Color(player.getColor()).r, Color(player.getColor()).g, Color(player.getColor()).b]      # extract original values
+        for i in range(3):
+            outline_color[i] //= 2      # make outline darker
+        
+        # active player icon is drawn slightly below the rest to make it stand out
+        if player == active_player:
+            player_icon_y += PLAYER_ICON_RADIUS//2
+
+        pg.draw.circle(screen, Color(player.getColor()), (player_icon_x, player_icon_y), PLAYER_ICON_RADIUS)    # background
+        pg.draw.circle(screen, Color(outline_color[0], outline_color[1], outline_color[2]), (player_icon_x, player_icon_y), PLAYER_ICON_RADIUS, outline_width)      # outline
+
+
+def drawGamePhaseIcons(current_phase: int, outline_width = 2, round_corners = 3) -> None:
+    
+    """
+    DRAFT -> HEIGHT//2 - GAP - 3 * LENGTH//2
+    ATTACK -> HEIGHT//2 - LENGTH//2
+    FORTIFY -> HEIGHT//2 + GAP + LENGTH//2
+    """
+    
+    y_0 = HEIGHT//2 - PHASE_ICON_GAP - 3 * PHASE_ICON_LENGTH//2
+    
+    for i in range(3):
+        
+        # card #
+        width: int = PHASE_ICON_LENGTH
+        if i == current_phase:
+            width = ACTIVE_PHASE_ICON_WIDTH
+        
+        x: int = WIDTH - width
+        y: int = y_0 + (i * PHASE_ICON_GAP) + (i * PHASE_ICON_LENGTH)
+        
+        pg.draw.rect(screen, Color(CARD_BG_COLOR), (x, y, width, PHASE_ICON_LENGTH), 0, round_corners)    # background
+        pg.draw.rect(screen, Color(CARD_COLOR), (x, y, width, PHASE_ICON_LENGTH), outline_width, round_corners)  # outline
+        
+        # text #
+        font = pg.font.Font(None, PHASE_ICON_TEXT_SIZE)
+        text = font.render(PHASE_NAMES[i][0].upper(), True, CARD_COLOR)
+        text_rect = text.get_rect(center = (x + width//2, y + PHASE_ICON_LENGTH//2))
+        screen.blit(text, text_rect)
+
+
+def drawGamePhaseInfo(text_str: str, active_player_color: str, outline_width: int = 2, round_corners: int = 3) -> None:
+    
+    # text #
+    font: pg.font.Font = pg.font.Font(None, FONT_SIZE)
+    text = font.render(text_str, True, active_player_color)
+    text_rect = text.get_rect(center = (int(1.2 * ACTIVE_PLAYER_BAND_OUTLINE) + PHASE_ICON_LENGTH//2, HEIGHT//2))
+    
+    # background rect #
+    bg_color: str = TEXT_BG_COLOR
+    outline_color: str = active_player_color
+    if active_player_color in DARK_COLORS:
+        bg_color = TEXT_COLOR
+    
+    x: int = text_rect.x - text_rect.width//4
+    y: int = text_rect.y - text_rect.height//4
+    width: int = 3 * text_rect.width//2
+    height: int = 3 * text_rect.height//2
+    
+    # blit #
+    pg.draw.rect(screen, Color(bg_color), (x, y, width, height), 0, round_corners)    # background
+    pg.draw.rect(screen, Color(outline_color), (x, y, width, height), outline_width, round_corners)  # background
+    screen.blit(text, text_rect)
+
+
+def displaySelectedTerritoryName(territory: Territory, outline_width: int = 2, round_corners: int = 3) -> None:
+    
+    # text #
+    font: pg.font.Font = pg.font.Font(None, FONT_SIZE)
+    text = font.render(selected_territory.getName(), True, Color(selected_territory.getRuler().getColor()))
+    text_rect = text.get_rect(center = (WIDTH//2, SELECTED_TERRITORY_NAME_HEIGHT))
+    
+    # background rect #
+    bg_color: str = TEXT_BG_COLOR
+    outline_color: str = territory.getRuler().getColor()
+    if territory.getRuler().getColor() in DARK_COLORS:
+        bg_color = TEXT_COLOR
+
+    x: int = text_rect.x - int(0.05 * text_rect.width)
+    y: int = text_rect.y - int(0.2 * text_rect.height)
+    width: int = int(1.1 * text_rect.width)
+    height: int = int(1.4 * text_rect.height)
+    
+    # blit #
+    pg.draw.rect(screen, Color(bg_color), (x, y, width, height), 0, round_corners)  # background
+    pg.draw.rect(screen, Color(outline_color), (x, y, width, height), outline_width, round_corners)  # background
+    screen.blit(text, text_rect)
+
+
+# --- map --- #
 
 # recursively determine whether 2 territories are connected by checking if the neighbours of T2, with ruler equal to T2's ruler, are connected to T1
 def areConnected(territory1: Territory, territory2: Territory, territories_traversed: list[Territory] | None = None) -> bool:
@@ -100,6 +216,8 @@ def triangleMark(territory: Territory, mark_color: str) -> None:
 def euclidianDistance(a: tuple[int, int], b: tuple[int, int]) -> float:
     return sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
+
+# --- territory cards --- #
 
 def drawSelectedCards(outline_width: int = 3, round_corners: int = 2) -> None:
     
@@ -395,8 +513,6 @@ while running:
     # GAME #
     
     # REFRESH #
-    
-    # --- map --- #
 
     screen.fill(BG_COLOR)
     
@@ -406,19 +522,22 @@ while running:
         screen.blit(CLASSIC_MAP, (0, 0))
         
         # exit button #
-        pg.draw.circle(screen, Color("red"), CARDS_EXIT_COORDS, CARDS_EXIT_RADIUS)    # exit button
+        pg.draw.circle(screen, Color(CARDS_EXIT_BG_COLOR), CARDS_EXIT_COORDS, CARDS_EXIT_RADIUS)    # bg
+        pg.draw.circle(screen, Color(CARDS_EXIT_OUTLINE_COLOR), CARDS_EXIT_COORDS, CARDS_EXIT_RADIUS, CARDS_EXIT_OUTLINE_WIDTH)  # outline
+        
         cards_exit_button_font = pg.font.Font(None, FONT_SIZE)
-        cards_exit_button_text = cards_exit_button_font.render("X", True, "black")
-        cards_exit_button_text_rect = cards_exit_button_text.get_rect(center = CARDS_EXIT_COORDS)
-        screen.blit(cards_exit_button_text, cards_exit_button_text_rect)
+        cards_exit_button_text = cards_exit_button_font.render("X", True, "black")      # text
+        cards_exit_button_text_rect = cards_exit_button_text.get_rect(center = CARDS_EXIT_COORDS)       # text position
+        screen.blit(cards_exit_button_text, cards_exit_button_text_rect)    # blit text
         
         # trade button #
-        pg.draw.rect(screen, Color(TRADE_BUTTON_BG_COLOR), (TRADE_BUTTON_COORDS[0], TRADE_BUTTON_COORDS[1], TRADE_BUTTON_WIDTH, TRADE_BUTTON_HEIGHT), 0, 4)  # bg
+        pg.draw.rect(screen, Color(TRADE_BUTTON_BG_COLOR), (TRADE_BUTTON_COORDS[0], TRADE_BUTTON_COORDS[1], TRADE_BUTTON_WIDTH, TRADE_BUTTON_HEIGHT), 0, 4)     # bg
         pg.draw.rect(screen, Color(TRADE_BUTTON_OUTLINE_COLOR), (TRADE_BUTTON_COORDS[0], TRADE_BUTTON_COORDS[1], TRADE_BUTTON_WIDTH, TRADE_BUTTON_HEIGHT), 3, 4)  # outline
+        
         trade_button_font = pg.font.Font(None, FONT_SIZE)
-        trade_button_text = trade_button_font.render("TRADE", True, TRADE_BUTTON_TEXT_COLOR)
-        trade_button_text_rect = trade_button_text.get_rect(center = TRADE_BUTTON_CENTER)
-        screen.blit(trade_button_text, trade_button_text_rect)
+        trade_button_text = trade_button_font.render("TRADE", True, TRADE_BUTTON_TEXT_COLOR)    # text
+        trade_button_text_rect = trade_button_text.get_rect(center = TRADE_BUTTON_CENTER)       # text position
+        screen.blit(trade_button_text, trade_button_text_rect)      # blit text
         
         # display selected territory cards #
         drawSelectedCards()
@@ -432,20 +551,15 @@ while running:
     
         # --- UI --- #
         
+        # players #
+        drawPlayerIcons(game.players, game.active_player)
+        
         # current phase #
-        phase_font = pg.font.Font(None, FONT_SIZE)
-        phase_text = phase_font.render(game.getPhaseStr(), True, TEXT_COLOR, TEXT_BG_COLOR)
-        phase_text_rect = phase_text.get_rect(center=(WIDTH//2, 9*HEIGHT//10))
-        screen.blit(phase_text, phase_text_rect)
+        drawGamePhaseIcons(game.phase - 1)
     
         # draft phase #
         if game.phase == 1:
-            phase_info_font = pg.font.Font(None, FONT_SIZE)
-            phase_info_text = phase_info_font.render(("+" + str(game.active_player.available_troops)), True, game.active_player.color, TEXT_BG_COLOR)
-            if game.active_player.color in DARK_COLORS:
-                phase_info_text = phase_info_font.render(("+" + str(game.active_player.available_troops)), True, game.active_player.color, "white")
-            phase_info_text_rect = phase_info_text.get_rect(center = (19 * WIDTH // 20, HEIGHT // 2))
-            screen.blit(phase_info_text, phase_info_text_rect)
+            drawGamePhaseInfo(f"+{game.active_player.getTroops()}", game.active_player.getColor())
         
         # possible attacks markers #
         # draw a square around all territories that can be attacked
@@ -492,12 +606,7 @@ while running:
         
         # selected territory's name #
         if not selected_territory.isNull():
-            troops_font = pg.font.Font(None, FONT_SIZE)
-            troops_text = troops_font.render(selected_territory.name, True, Color(selected_territory.ruler.color), TEXT_BG_COLOR)
-            if selected_territory.ruler.color in DARK_COLORS:
-                troops_text = troops_font.render(selected_territory.name, True, Color(selected_territory.ruler.color), "white")
-            troops_text_rect = troops_text.get_rect(center = (WIDTH//2, 19*HEIGHT//20))
-            screen.blit(troops_text, troops_text_rect)
+            displaySelectedTerritoryName(selected_territory)
         
         # territory cards #
         if len(game.active_player.getTerritoryCards()) > 0:
@@ -522,7 +631,9 @@ while running:
     #     pg.draw.rect(screen, Color((0, 255, 0, alpha_channel)), (i, i, WIDTH-2*i, HEIGHT-2*i), 1)
 
     # film grain effect (no transparency)
-    pg.draw.rect(screen, Color(game.active_player.color), (0, 0, WIDTH, HEIGHT), 10)
+    pg.draw.rect(screen, Color(game.active_player.color), (0, 0, WIDTH, HEIGHT), ACTIVE_PLAYER_BAND_OUTLINE)
+    
+    # pg.draw.line(screen, Color('purple'), (WIDTH//2, 0), (WIDTH//2, HEIGHT))    # highlight center of screen
     
     pg.display.update()
     clock.tick(FPS)
