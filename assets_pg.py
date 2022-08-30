@@ -6,6 +6,25 @@ import random
 import time
 
 
+class TerritoryCard:
+    
+    def __init__(self, design: str) -> None:
+        
+        self.design: str = design
+    
+    ### SETTERS ###
+    
+    ### GETTERS ###
+    
+    def getDesign(self) -> str:
+        return self.design
+    
+    ### ACTIONS ###
+    
+    def isNull(self) -> bool:
+        return self.design == "n"
+
+
 class Player:
 
     def __init__(self, player_color: str, is_null: bool = False) -> None:
@@ -17,6 +36,9 @@ class Player:
         
         # military #
         self.available_troops: int = 0
+        
+        # territory cards #
+        self.territory_cards: list[TerritoryCard] = []
 
     ### SETTERS ###
 
@@ -32,6 +54,26 @@ class Player:
     def removeTroops(self, number_troops: int) -> None:
         self.available_troops -= number_troops
     
+    def addTerritoryCard(self, new_card: TerritoryCard) -> None:
+        self.territory_cards.append(new_card)
+    
+    def addRandomTerritoryCard(self) -> None:
+        self.addTerritoryCard(TerritoryCard(random.choice(TERRITORY_CARD_DESIGNS)))
+    
+    def removeTerritoryCard(self, given_card: TerritoryCard) -> None:
+        
+        if given_card not in self.territory_cards:
+            card_type: str = "infantry"
+            if given_card.getDesign() == "c":
+                card_type = "cavalry"
+            elif given_card.getDesign() == "a":
+                card_type = "artillery"
+            elif given_card.getDesign() == "w":
+                card_type = "wild card"
+            raise Exception(f"{self.color} player has no card of type {card_type}")
+        
+        self.territory_cards.remove(given_card)
+    
     ### GETTERS ###
     
     def isNull(self) -> bool:
@@ -43,9 +85,19 @@ class Player:
     def getTroops(self) -> int:
         return self.available_troops
     
+    def getTerritoryCards(self) -> list[TerritoryCard]:
+        return self.territory_cards
+    
     ### ACTIONS ###
 
-
+    def printTerritoryCards(self) -> None:
+        for card in self.territory_cards:
+            if self.territory_cards.index(card) != len(self.territory_cards) - 1:
+                print(card.design.upper(), end = ", ")
+            else:
+                print(card.design.upper())
+    
+    
 class Territory:
 
     def __init__(self, name: str = "", territory_id: str = "", neighbours = None, x: int = 0, y: int = 0,
@@ -153,6 +205,9 @@ class Continent:
     
     ### SETTERS ###
     
+    def setID(self, new_id) -> None:
+        self.id = new_id
+    
     def setRuler(self, new_ruler: Player) -> None:
         self.ruler = new_ruler
     
@@ -233,6 +288,12 @@ class Game:
 
         for continent in self.continents.values():
             self.continents_list.append(continent)
+
+        # territory cards #
+        self.territory_cards_window: bool = False  # True when player is viewing their territory cards
+        self.player_received_card: bool = False
+        self.trades_completed: int = 0      # amount of trades players have made
+        self.territory_cards_overflow: bool = False     # player has > 5 territory cards
         
         # game #
         self.phase: int = 0
@@ -258,17 +319,42 @@ class Game:
                 self.dice[role][dice] = random.randint(1, 6)
             self.dice[role].sort()
             self.dice[role].reverse()
-
+    
+    def toggleTerritoryCardsWindow(self) -> None:
+        self.territory_cards_window = not self.territory_cards_window
+    
+    def receiveCard(self) -> None:
+        self.player_received_card = True
+        self.active_player.addRandomTerritoryCard()
+    
+    def addTrade(self) -> None:
+        self.trades_completed += 1
+    
+    def toggleTerritoryCardsOverflow(self) -> None:
+        self.territory_cards_overflow = not self.territory_cards_overflow
+    
     ### GETTERS ###
 
     def getPlayers(self) -> list[Player]:
         return self.players
-
+    
     def getContinents(self) -> dict[str: Continent]:
         return self.continents
     
     def getContinentsList(self) -> list[Continent]:        
         return self.continents_list
+    
+    def isViewingTerritoryCards(self) -> bool:
+        return self.territory_cards_window
+    
+    def playerHasReceivedCard(self) -> bool:
+        return self.player_received_card
+    
+    def getTrades(self) -> int:
+        return self.trades_completed
+    
+    def hasTerritoryCardOverflow(self) -> bool:
+        return self.territory_cards_overflow
     
     def getPhaseStr(self) -> str:   # get phase as a string
         return "DRAFT" if self.phase == 1 else "ATTACK" if self.phase == 2 else "FORTIFY"
@@ -285,9 +371,12 @@ class Game:
         print("creating players...")
         
         # select number of players #
-        n_players: int = int(input("enter the number of players: "))
-        while n_players not in range(2, 7):
-            n_players = int(input(f"{n_players} is an invalid number of players. please enter a number in the range [2; 6]: "))
+        # n_players: int = int(input("enter the number of players: "))
+        # while n_players not in range(3, 7):
+        #     n_players = int(input(f"{n_players} is an invalid number of players. please enter a number in the range [3; 6]: "))
+        
+        # auto choose players #
+        n_players: int = 3
         
         available_colors: list[str] = ["green", "red", "blue", "black", "orange", "purple"]
         color: str
@@ -295,12 +384,16 @@ class Game:
         for i in range(n_players):
 
             # choose player color >>>
-            if len(available_colors) == 1:      # there is only 1 color left
-                color = available_colors[0]
-                print(f"player {n_players}'s color was set to {color} as it was the only one left")
-            else:
-                color = input(f"choose color for player {i+1} (available: {available_colors}): ")
+            # if len(available_colors) == 1:      # there is only 1 color left
+            #     color = available_colors[0]
+            #     print(f"player {n_players}'s color was set to {color} as it was the only one left")
+            # else:
+            #     color = input(f"choose color for player {i+1} (available: {available_colors}): ")
             # <<<
+            
+            # auto choose color #
+            
+            color = available_colors[i]
             
             # check color availability >>>
             while color not in available_colors:
@@ -320,6 +413,7 @@ class Game:
         if player_turn == len(self.players):
             player_turn = 0
         self.active_player = self.players[player_turn]
+        self.player_received_card = False   # reset
         
     def countPlayerTerritories(self, player: Player) -> int:
 
@@ -359,7 +453,19 @@ class Game:
         # <<<
 
         return draft_troops
-
+    
+    def trade_troops(self) -> None:
+        
+        troops_gained: int
+        
+        if self.trades_completed < len(FIRST_TRADES_TROOPS):
+            troops_gained = FIRST_TRADES_TROOPS[self.trades_completed]
+        else:
+            troops_gained = 5 * (self.trades_completed - 2)     # 6 trades -> 20 troops, 7 trades -> 25 troops, ...
+        
+        self.active_player.addTroops(troops_gained)
+        self.trades_completed += 1
+    
     # --- map --- #
 
     def assignTerritories(self) -> None:
@@ -432,7 +538,7 @@ class Game:
     def findTerritoryContinent(self, territory_id: str) -> Continent:
         for continent in self.getContinentsList():
             territory = continent.findTerritory(territory_id)
-            if territory.isNull():
+            if not territory.isNull():
                 return continent
         return NULL_CONTINENT
     
@@ -468,14 +574,14 @@ class Game:
                         return territory
         
         return NULL_TERRITORY
-
+    
     # --- game --- #
 
     def passPhase(self) -> None:
         
         self.first_territory = NULL_TERRITORY       # reset at the end of phase
-        
         self.phase += 1
+        
         if self.phase == 4:     # there are only 3 phases: draft, attack, fortify
             self.phase = 1
             self.passTurn()     # at the end of phase 3, it is the next player's turn
@@ -502,12 +608,15 @@ class Game:
 
     def draftTroops(self) -> None:
     
-        # ask how many troops should be drafted >
-        troops_drafted: int = self.askTroops(f"troops drafted to {self.first_territory.name}: ")
-        # check that the given number doesn't exceed the max >
-        troops_drafted = min(troops_drafted, self.active_player.available_troops)
-        # check that the given number isn't negative >
-        troops_drafted = max(0, troops_drafted)
+        troops_drafted: int = 1     # default
+        
+        if self.active_player.getTroops() != 1:     # if more than 1 troop left to draft
+            # ask how many troops should be drafted >
+            troops_drafted = self.askTroops(f"troops drafted to {self.first_territory.name}: ")
+            # check that the given number doesn't exceed the max >
+            troops_drafted = min(troops_drafted, self.active_player.available_troops)
+            # check that the given number isn't negative >
+            troops_drafted = max(0, troops_drafted)
     
         # draft troops >>>
         self.first_territory.addTroops(troops_drafted)
@@ -516,6 +625,11 @@ class Game:
     
     def conquerTerritory(self, territory_conquered: Territory, conqueror: Player) -> None:
         if self.countPlayerTerritories(territory_conquered.ruler) == 1:     # this was the enemy player's last territory -> remove player from the game
+            for territory_card in territory_conquered.ruler.getTerritoryCards():    # conqueror inherits all territory cards held by defeated opponent
+                conqueror.addTerritoryCard(territory_card)
+            if len(conqueror.getTerritoryCards()) > 4:     # player can't hold more than 4 cards
+                self.phase = 1
+                self.territory_cards_overflow = True
             self.players.remove(territory_conquered.ruler)
         territory_conquered.setRuler(conqueror)     # update ruler
 
@@ -542,13 +656,8 @@ class Game:
             # <<<
             
             # print dice roll >>>
-            print()
-            print(f"{self.first_territory.name} lost: {attacking_troops - self.first_territory.getTroops()} by "
-                  f"rolling {self.dice[1]}")
-            print(f"{defending_territory.name} lost: {defending_troops - defending_territory.getTroops()} by rolling "
-                  f"{self.dice[0]}")
-            print(f"troops available: {self.first_territory.name} {self.first_territory.getTroops()} |", end=" ")
-            print(f"{defending_territory.getTroops()} {defending_territory.name}")
+            print(f"\n{self.first_territory.name} rolled {self.dice[1]}")
+            print(f"{defending_territory.name} rolled {self.dice[0]}")
             # <<<
         
         print()
@@ -574,9 +683,12 @@ class Game:
     
     def fortify(self, destination: Territory) -> None:
         
-        troops_moved: int = self.askTroops(f"troops to be moved from {self.first_territory.name} to {destination.name}")
-        # check that the input number is valid
-        troops_moved = min(max(troops_moved, 0), self.first_territory.troops_stationed - 1)
+        troops_moved: int = 1    # default
+        
+        if self.first_territory.getTroops() > 2:       # if more than 1 troop can be moved
+            troops_moved: int = self.askTroops(f"troops to be moved from {self.first_territory.name} to {destination.name}")
+            # check that the input number is valid
+            troops_moved = min(max(troops_moved, 0), self.first_territory.troops_stationed - 1)
         
         # fortify
         if troops_moved != 0:   # redundancy
@@ -590,3 +702,12 @@ class Game:
 NULL_PLAYER: Player = Player("n/a", True)
 NULL_TERRITORY: Territory = Territory(is_null = True)
 NULL_CONTINENT: Continent = Continent(is_null = True)
+
+# TERRITORY CARDS #
+
+TERRITORY_CARD_DESIGNS: list[str] = ["i", "c", "a", "w"]
+INFANTRY_CARD: TerritoryCard = TerritoryCard(TERRITORY_CARD_DESIGNS[0])
+CAVALRY_CARD: TerritoryCard = TerritoryCard(TERRITORY_CARD_DESIGNS[1])
+ARTILLERY_CARD: TerritoryCard = TerritoryCard(TERRITORY_CARD_DESIGNS[2])
+WILD_CARD: TerritoryCard = TerritoryCard(TERRITORY_CARD_DESIGNS[3])
+NULL_TERRITORY_CARD: TerritoryCard = TerritoryCard("n")

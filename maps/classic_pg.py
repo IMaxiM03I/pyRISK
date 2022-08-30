@@ -47,7 +47,7 @@ african_terr: dict[str: Territory] = {
 # asia #
 asian_terr: dict[str: Territory] = {
     "ural": Territory(name="Ural", neighbours=["ukraine", "siberia", "china", "afghanistan"], x=648, y=130),
-    "siberia": Territory(name="Siberia", neighbours=["ural", "yakutsk", "irkutsk", "mongolia", "china", "afghanistan"], x=700, y=100),
+    "siberia": Territory(name="Siberia", neighbours=["ural", "yakutsk", "irkutsk", "mongolia", "china"], x=700, y=100),
     "yakutsk": Territory(name="Yakutsk", neighbours=["siberia", "kamchatka", "irkutsk"], x=768, y=64),
     "irkutsk": Territory(name="Irkutsk", neighbours=["siberia", "yakutsk", "kamchatka", "mongolia"], x=762, y=130),
     "mongolia": Territory(name="Mongolia", neighbours=["siberia", "irkutsk", "kamchatka", "japan", "china"], x=784, y=185),
@@ -62,10 +62,10 @@ asian_terr: dict[str: Territory] = {
 
 # australia #
 aussie_terr: dict[str: Territory] = {
-    "indonesia": Territory(name="Indonesia", neighbours=["siam", "new guinea", "w australia"], x=795, y=436),
-    "new guinea": Territory(name="New Guinea", neighbours=["indonesia", "e australia", "w australia"], x=908, y=416),
-    "w australia": Territory(name="Western Australia", neighbours=["indonesia", "new guinea", "e australia"], x=850, y=556),
-    "e australia": Territory(name="Eastern Australia", neighbours=["w australia", "new guinea"], x=960, y=550)
+    "indonesia": Territory(name = "Indonesia", neighbours = ["siam", "new guinea", "w australia"], x = 795, y = 436),
+    "new guinea": Territory(name = "New Guinea", neighbours = ["indonesia", "e australia", "w australia"], x = 908, y = 416),
+    "w australia": Territory(name = "Western Australia", neighbours = ["indonesia", "new guinea", "e australia"], x = 850, y = 556),
+    "e australia": Territory(name = "Eastern Australia", neighbours = ["w australia", "new guinea"], x = 960, y = 550)
 }
 
 
@@ -77,17 +77,18 @@ aussie_terr: dict[str: Territory] = {
 ### DEFINE CONTINENTS ###
 
 classic_continents: dict[str: Continent] = {
-    "n america": Continent("North America", "n america", nAmerican_terr, 5),
-    "s america": Continent("South America", "s america", sAmerican_terr, 2),
-    "europe": Continent("Europe", "europe", european_terr, 5),
-    "africa": Continent("Africa", "africa", african_terr, 3),
-    "asia": Continent("Asia", "asia", asian_terr, 7),
-    "australia": Continent("Australia", "australia", aussie_terr, 2)
+    "n america": Continent(name = "North America", territories = nAmerican_terr, bonus_troops = 5),
+    "s america": Continent(name = "South America", territories = sAmerican_terr, bonus_troops = 2),
+    "europe": Continent(name = "Europe", territories = european_terr, bonus_troops = 5),
+    "africa": Continent(name = "Africa", territories = african_terr, bonus_troops = 3),
+    "asia": Continent(name = "Asia", territories = asian_terr, bonus_troops = 7),
+    "australia": Continent(name = "Australia", territories = aussie_terr, bonus_troops = 2)
 }
 
-for continent in classic_continents.values():
-    for id in continent.getTerritories().keys():
-        continent.getTerritories()[id].setID(id)
+for continent_id, continent in classic_continents.items():
+    continent.setID(continent_id)
+    for territory_id in continent.getTerritories().keys():
+        continent.getTerritories()[territory_id].setID(territory_id)
 
 
 ### MAP ###
