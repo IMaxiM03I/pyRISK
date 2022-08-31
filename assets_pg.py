@@ -371,12 +371,12 @@ class Game:
         print("creating players...")
         
         # select number of players #
-        # n_players: int = int(input("enter the number of players: "))
-        # while n_players not in range(3, 7):
-        #     n_players = int(input(f"{n_players} is an invalid number of players. please enter a number in the range [3; 6]: "))
+        n_players: int = int(input("enter the number of players: "))
+        while n_players not in range(3, 7):
+            n_players = int(input(f"{n_players} is an invalid number of players. please enter a number in the range [3; 6]: "))
         
         # auto choose players #
-        n_players: int = 6
+        # n_players: int = 6
         
         available_colors: list[str] = ["green", "red", "blue", "dimgrey", "orange", "purple"]
         color: str
@@ -384,15 +384,15 @@ class Game:
         for i in range(n_players):
 
             # choose player color >>>
-            # if len(available_colors) == 1:      # there is only 1 color left
-            #     color = available_colors[0]
-            #     print(f"player {n_players}'s color was set to {color} as it was the only one left")
-            # else:
-            #     color = input(f"choose color for player {i+1} (available: {available_colors}): ")
+            if len(available_colors) == 1:      # there is only 1 color left
+                color = available_colors[0]
+                print(f"player {n_players}'s color was set to {color} as it was the only one left")
+            else:
+                color = input(f"choose color for player {i+1} (available: {available_colors}): ")
             # <<<
             
             # auto choose color #
-            color = random.choice(available_colors)
+            # color = random.choice(available_colors)
             
             # check color availability >>>
             while color not in available_colors:
