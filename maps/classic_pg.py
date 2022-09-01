@@ -1,4 +1,7 @@
+import pygame as pg
+from pygame.locals import *
 from assets_pg import *
+from constants import *
 
 ### DEFINE TERRITORIES ###
 
@@ -85,10 +88,25 @@ classic_continents: dict[str: Continent] = {
     "australia": Continent(name = "Australia", territories = aussie_terr, bonus_troops = 2)
 }
 
+# set IDs #
 for continent_id, continent in classic_continents.items():
     continent.setID(continent_id)
     for territory_id in continent.getTerritories().keys():
         continent.getTerritories()[territory_id].setID(territory_id)
+
+# set relative coords #
+for continent in classic_continents.values():
+    # print(f"--- {continent.getName().upper()} ---\n")
+    for territory in continent.getTerritoriesList():
+        """
+        c * WIDTH = x
+        """
+        x_coefficient: float = territory.getCoords()[0]/1000    # math
+        y_coefficient: float = territory.getCoords()[1]/647     # math
+        # print(f"{territory.getName()}:::    x: {territory.getCoords()[0]} -> {int(x_coefficient * WIDTH)} | y: {territory.getCoords()[1]} -> {int(y_coefficient * HEIGHT)}")
+        territory.setCoords(int(x_coefficient * WIDTH), int(y_coefficient * HEIGHT))
+    # print()
+
 
 
 ### MAP ###

@@ -9,7 +9,7 @@ from math import sqrt
 ### ----- VARIABLES ------ ###
 
 
-game: Game = Game(classic_continents)
+game: Game = Game(CLASSIC_MAP, classic_continents)
 
 selected_territory: Territory = NULL_TERRITORY
 
@@ -518,8 +518,8 @@ while running:
     
     if game.isViewingTerritoryCards():
         # fade out background #
-        CLASSIC_MAP.set_alpha(100)
-        screen.blit(CLASSIC_MAP, (0, 0))
+        game.map.set_alpha(100)
+        screen.blit(game.map, (0, 0))
         
         # exit button #
         pg.draw.circle(screen, Color(CARDS_EXIT_BG_COLOR), CARDS_EXIT_COORDS, CARDS_EXIT_RADIUS)    # bg
@@ -545,8 +545,8 @@ while running:
         # display player's territory cards #
         drawPlayerCards()
     else:
-        CLASSIC_MAP.set_alpha(255)
-        screen.blit(CLASSIC_MAP, (0, 0))
+        game.map.set_alpha(255)
+        screen.blit(game.map, (0, 0))
         game.drawTerritories(screen)
     
         # --- UI --- #

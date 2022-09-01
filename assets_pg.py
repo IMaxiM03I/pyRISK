@@ -123,6 +123,10 @@ class Territory:
     
     ### SETTERS ###
     
+    def setCoords(self, new_x: int, new_y: int) -> None:
+        self.x = new_x
+        self.y = new_y
+    
     def setID(self, territory_id: str) -> None:
         self.id = territory_id
 
@@ -145,6 +149,9 @@ class Territory:
 
     def isNull(self) -> bool:
         return self.null_type
+    
+    def getCoords(self) -> tuple[int, int]:
+        return self.x, self.y
     
     def getName(self) -> str:
         return self.name
@@ -271,7 +278,7 @@ class Continent:
 
 class Game:
 
-    def __init__(self, continents: dict[str: Continent]) -> None:
+    def __init__(self, map_image: pg.image, continents: dict[str: Continent]) -> None:
         
         print("commencing game setup...\n")
         
@@ -283,6 +290,7 @@ class Game:
         self.dice: list[list[int]] = [[0, 0], [0, 0, 0]]
 
         # map #
+        self.map: pg.image = pg.transform.scale(map_image, (WIDTH, HEIGHT))
         self.continents: dict[str: Continent] = continents
         self.continents_list: list[Continent] = []
 

@@ -3,9 +3,8 @@ from pygame.locals import *
 from math import sin, pi
 
 # SCREEN #
-SCREEN_SIZE: int = 500
-WIDTH: int = 1000
-HEIGHT: int = 647
+WIDTH: int = int(1.2 * 1000)
+HEIGHT: int = int(1.2 * 647)
 FPS: int = 60
 
 # TEXT #
