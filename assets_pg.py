@@ -379,12 +379,25 @@ class Game:
         print("creating players...")
         
         # select number of players #
-        n_players: int = int(input("enter the number of players: "))
-        while n_players not in range(3, 7):
-            n_players = int(input(f"{n_players} is an invalid number of players. please enter a number in the range [3; 6]: "))
-        
+        user_input: str = input("enter the number of players (3-6): ")
+
+        # check valid input
+        while user_input not in "3456":
+
+            if user_input not in "012789":
+                user_input = input(f"'{user_input}' is of invalid format. Please enter a number in the range of [3; 6]: ")
+                continue
+
+            user_input = input(f"'{user_input}' is an invalid number of players. Please enter a number in the range [3; 6]: ")
+
         # auto choose players #
-        # n_players: int = 6
+        if user_input == '':
+            user_input = '4'
+            print(f"player count was randomly set to {user_input}")
+
+        n_players = int(user_input)
+
+        print()
         
         available_colors: list[str] = ["green", "red", "blue", "dimgrey", "orange", "purple"]
         color: str
@@ -396,18 +409,20 @@ class Game:
                 color = available_colors[0]
                 print(f"player {n_players}'s color was set to {color} as it was the only one left")
             else:
-                color = input(f"choose color for player {i+1} (available: {available_colors}): ")
+                color = input(f"choose color for player {i + 1} (available: {available_colors}): ").lower()
             # <<<
             
             # auto choose color #
-            # color = random.choice(available_colors)
-            
+            if color == '':
+                color = random.choice(available_colors)
+                print(f"player {i + 1}'s color was randomly set to {color}")
+
             # check color availability >>>
             while color not in available_colors:
                 color = input(f"color not available, choose one of {available_colors}: ")
             # <<<
             
-            available_colors.remove(color)      # update available colors
+            available_colors.remove(color)          # update available colors
             self.players.append(Player(color))      # add player
         
         self.active_player = self.players[random.randint(0, len(self.players) - 1)]     # assign random player as starting player
